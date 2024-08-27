@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<meta name="viewport" content="width=device-width",initial-scale=1,maxinum-scale=1.0,user-scalable="no">
+<title>个人作品</title> 
+</head>
+<body>
+
+<div class="container pc-block">
+  <div class="content">
+
+
+    <div class="content-top">
+      <div class="content-top-1"></div>
+      <div class="content-top-2">
+        <div class="musk-blk" onclick="window.open('car-rendering.html','_self')"><p>汽车渲染案例</p></div>
+        <div class="content-top-2-1">
+          <div class="content-top-2-1-1">
+            <div class="content-top-2-1-1-1"></div>
+            <div class="content-top-2-1-1-2"><image src="images/2024.png" width="90%" alt="2024"></div>
+          </div>
+          <div class="content-top-2-1-2">></div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="content-bottom">
+      <div class="content-bottom-container">
+        <div class="content-bottom-1">
+          <div class="musk-blk" onclick="window.open('amazon-A+.html','_self')"><p style="font-size:25px;">亚马逊主图高级A+</p></div>
+        </div>
+        <div class="content-bottom-2">
+          <div class="content-bottom-2-1">
+            <div class="content-bottom-2-1-1"></div>
+            <div class="content-bottom-2-1-2">
+              <div class="musk-blk" onclick="window.open('product-photography.html','_self')"><p>产品实拍精修案例</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="content-bottom-3">
+          <div class="musk-blk" onclick="window.open('product-details.html','_self')"><p>产品详情页案例</p></div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+
+<div class="mobile-container mobile-block">
+  <div class="mobile-content">
+    <img src="images/mobile/head.png" width="100%" >
+    <div style="position:relative;z-index:1;width:100%;display:flex;flex-wrap:wrap;align-items: flex-end;justify-content: space-between;">
+      <img style="cursor:pointer;position:relative;z-index:1;" src="images/mobile/block01.png" onclick="window.open('car-rendering.html','_self')" width="62%" >
+      <img style="cursor:pointer;position:relative;z-index:0;margin-left:-4%;" src="images/mobile/block02.png" onclick="window.open('product-photography.html','_self')" width="42%" >
+    </div>
+    <div style="position:relative;z-index:2;width:100%;display:flex;flex-wrap:wrap;align-items: flex-start;justify-content: space-between;">
+      <img style="cursor:pointer;margin-top:-30px;" src="images/mobile/block04.png" onclick="window.open('product-details.html','_self')" width="43%" >
+      <img style="cursor:pointer;margin-top:0px;" src="images/mobile/block03.png" onclick="window.open('amazon-A+.html','_self')" width="57%" >
+    </div>
+  </div>
+  <div class="moblie-bg2"><img src="images/mobile/bg2.png" width="100%"></div>
+</div>
+
+<style>
+.mobile-block, .pc-block{
+  display:none;
+}
+@media screen and (min-width:700px){
+  .pc-block{
+    display:flex;
+  }
+}
+@media screen and (max-width:699px){
+  .mobile-block{
+    display:block;
+  }
+}
+.mobile-container{
+  width:100%;
+  height:100vh;
+  background-image:url('images/mobile/bg1.png'); /* 背景图链接 */
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+.moblie-bg2{
+  width:100%;
+  position:absolute;
+  left:0;
+  bottom:0;
+  z-index:0;
+}
+.mobile-content{
+  width:100%;
+  position:absolute;
+  left:0;
+  top:0;
+  z-index:1;
+}
+*{
+  margin:0;
+  padding:0;
+}
+body{
+  background-color:#000000; /* 背景色调节 */
+}
+.musk-blk{
+  width:100%;
+  height:100%;
+  background-color:black;
+  opacity:0;
+  position:absolute;
+  transition:0.3s;
+  top:0;
+  left:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+}
+.musk-blk p{
+  display:inline-block;
+  color:#ffffff;
+  font-weight:800;
+  font-size:35px;
+  padding:15px 30px;
+  border:1px #ffffff solid;
+}
+.musk-blk:hover{
+  opacity:0.85;
+}
+.container{
+  width:100%;
+  min-width:1300px;
+  height:100vh;
+  background-image:url('images/background-pc.png'); /* 背景图链接 */
+  background-size:cover;
+  background-position:center;
+  justify-content:center;
+ align-items:center;
+}
+@media screen and (max-width:1300px){
+  .container{
+    justify-content:left;
+   padding:0 20px;
+  }
+}
+.content{
+  width:80%;
+  min-width:1280px;
+  max-width:1920px;
+  height:85vh;
+  position:relative;
+}
+.content-top{
+  width:100%;
+  height:52%;
+  position:absolute;
+  top:0;
+  left:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.content-top-1{
+  width:55%;
+  height:100%;
+  opacity:1;
+  background-image:url('images/info.png');  /* 个人作品 */
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.content-top-2{
+  width:45%;
+  height:100%;
+  background-image:url('images/block-02.png');
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+}
+.content-top-2-1{
+  width:16%;
+  height:60%;
+  position:absolute;
+  left:0;
+  bottom:0;
+}
+.content-top-2-1-1{
+  width:100%;
+  height:85%;
+  display:flex;
+}
+.content-top-2-1-1-1{
+  width:20%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background-color:#000000;
+}
+.content-top-2-1-1-2{
+  width:80%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background-color:#e4000d;
+}
+.content-top-2-1-2{
+  width:100%;
+  height:15%;
+  color:#ffffff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background-color:#0000FF;
+}
+.content-bottom{
+  width:100%;
+  height:48%;
+  position:absolute;
+  bottom:0;
+  left:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.content-bottom-container{
+  width:100%;
+  height:100%;
+  position:relative;
+}
+.content-bottom-1{
+  width:35%;
+  height:100%;
+  z-index:5;
+  position:absolute;
+  bottom:0;
+  left:29.6%;
+  background-image:url('images/block-04.png');
+  background-size:cover;
+  background-position:center;
+}
+.content-bottom-2{
+  width:32%;
+  height:120%;
+  display:flex;
+  position:absolute;
+  bottom:0;
+  left:0;
+  z-index:6;
+}
+.content-bottom-2-1{
+  width:100%;
+  height:100%;
+  position:relative;
+}
+.content-bottom-2-1-1{
+  width:80%;
+  height:60%;
+  background-color:#ff6c00;
+  position:absolute;
+  top:-20px;
+  right:-20px;
+}
+.content-bottom-2-1-2{
+  width:100%;
+  height:100%;
+  background-image:url('images/block-03.png');
+  background-size:cover;
+  background-position:center;
+  position:absolute;
+  top:0px;
+  left:0px;
+}
+.content-bottom-3{
+  width:37.8%;
+  height:100%;
+  position:absolute;
+  background-image:url('images/block-05.png');
+  background-size:cover;
+  background-position:center;
+  top:0;
+  right:0;
+  z-index:6;
+}
+</style>
+</body>
+</html>
