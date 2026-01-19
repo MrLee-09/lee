@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>作品详情 | Product Design Portfolio</title>
+    
+    <!-- 图片防盗保护CSS -->
+    <style>
+        /* 图片基础保护 */
+        img {
+            pointer-events: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            -webkit-user-drag: none !important;
+            -moz-user-drag: none !important;
+            -ms-user-drag: none !important;
+            user-drag: none !important;
+        }
+        
+        /* 图片容器保护 */
+        .gallery-item, .detail-image, .thumbnail-item {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gallery-item::after, 
+        .detail-image::after, 
+        .thumbnail-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.001);
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        /* 防止文本选择 */
+        .gallery-item, .detail-header, .thumbnail-info {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        /* === 图片防盗增强保护 === */
+        .image-protection-overlay {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(255, 255, 255, 0.001) !important;
+            z-index: 1000 !important;
+            pointer-events: none !important;
+        }
+
+        /* 防止图片被选择 */
+        img, .gallery-item, .thumbnail-item, .detail-image {
+            -webkit-touch-callout: none !important;
+            -webkit-user-callout: none !important;
+        }
+
+        /* 防止长按保存 */
+        img {
+            -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+        }
+
+        /* 移动端特别保护 */
+        @media (max-width: 768px) {
+            img {
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+            }
+            
+            /* 防止长按弹出菜单 */
+            * {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+            }
+        }
+
+        /* 保护动画 */
+        @keyframes antiTheftPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+        
+        .protection-active {
+            animation: antiTheftPulse 2s infinite;
+        }
+        
+        /* === 核心样式 === */
+        :root {
+            --primary-color: #333;
+            --accent-color: #007AFF;
+            --bg-color: #f4f4f4;
+            --card-bg: #fff;
+            --transition: all 0.3s ease;
+            
+            /* === 详情页标题字体大小变量 - 独立控制 === */
+            --detail-title-size-desktop: 2.2rem;  /* 电脑端标题大小 */
+            --detail-title-size-mobile: 1.8rem;   /* 移动端标题大小 */
+            --detail-title-weight: 700;           /* 标题字体粗细 */
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent !important;
+            tap-highlight-color: transparent !important;
+        }
+
+        /* 防止双击缩放 */
+        html, body {
+            touch-action: manipulation;
+            -ms-touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            line-height: 1.6;
+            padding-bottom: 100px;
+            max-width: 100vw;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 防止按钮双击缩放 */
+        button, 
+        .filter-btn, 
+        .card-btn, 
+        .back-home,
+        .close-btn {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent !important;
+            tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        /* 防止链接双击缩放 */
+        a {
+            -webkit-tap-highlight-color: transparent !important;
+            tap-highlight-color: transparent !important;
+        }
+
+        .detail-header {
+            text-align: center;
+            padding: 60px 20px 30px;
+            background: var(--card-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* 电脑端标题样式 - 使用独立变量 */
+        .detail-header h1 {
+            font-size: var(--detail-title-size-desktop);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            font-weight: var(--detail-title-weight);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .detail-header .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 8px 16px;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .back-home:hover {
+            background-color: #0056cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+        
+        .card-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(0,122,255,0.2);
+        }
+
+        .card-btn:hover {
+            background-color: #0056CC;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,122,255,0.3);
+        }
+
+        .card-btn i {
+            font-size: 1rem;
+        }
+
+        .card-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .card-modal.show {
+            display: flex;
+        }
+
+        .card-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            position: relative;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-color);
+        }
+
+        .card-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .card-info {
+            margin-bottom: 25px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #f0f7ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            font-size: 0.95rem;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .qr-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .qr-img {
+            width: 150px;
+            height: 150px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+
+        .software-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .software-tag {
+            background-color: #f0f7ff;
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .thumbnail-nav {
+            max-width: 1200px;
+            margin: 30px auto 40px;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .thumbnail-nav h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .thumbnail-container {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 20px 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color) #f0f0f0;
+            scroll-padding-left: 20px;
+            scroll-padding-right: 20px;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .thumbnail-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .thumbnail-container::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        .thumbnail-container::-webkit-scrollbar-thumb {
+            background-color: var(--accent-color);
+            border-radius: 10px;
+        }
+
+        .thumbnail-container::before,
+        .thumbnail-container::after {
+            content: '';
+            flex-shrink: 0;
+            width: 1px;
+        }
+
+        .thumbnail-item {
+            flex: 0 0 auto;
+            width: 160px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: none;
+            border: 2px solid transparent;
+            transform: scale(1);
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .thumbnail-item:hover {
+                transform: scale(1.15);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 10;
+                margin-left: 10px;
+                margin-right: 10px;
+                border: 2px solid transparent;
+            }
+        }
+
+        /* === 返回顶部按钮样式 - 修复版 === */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            padding: 15px 30px;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0,122,255,0.4);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            cursor: pointer;
+            min-width: 140px;
+            border: none;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            pointer-events: auto !important;
+            -webkit-tap-highlight-color: rgba(0,122,255,0.3) !important;
+        }
+
+        .back-to-top.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            visibility: visible;
+            animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .back-to-top:hover {
+            background-color: #0056cc;
+            transform: translateX(-50%) translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,122,255,0.5);
+        }
+
+        .back-to-top i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-to-top:hover i {
+            transform: translateY(-3px);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translateX(-50%) translateY(150px);
+                opacity: 0;
+            }
+            60% {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 1;
+            }
+            80% {
+                transform: translateX(-50%) translateY(10px);
+            }
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* 移动端标题样式 - 使用独立变量控制 */
+            .detail-header h1 {
+                font-size: var(--detail-title-size-mobile) !important;
+                font-weight: var(--detail-title-weight) !important;
+                -webkit-text-stroke: 0.2px transparent;
+            }
+            
+            /* 移动端缩略图容器优化 - 移除吸附效果 */
+            .thumbnail-container {
+                padding: 20px 5px;
+                scroll-padding-left: 10px;
+                scroll-padding-right: 10px;
+                -webkit-overflow-scrolling: touch;
+                overflow-x: auto;
+                overflow-y: hidden;
+                touch-action: pan-x; /* 允许水平滑动 */
+                scroll-behavior: smooth; /* 平滑滚动 */
+            }
+            
+            .thumbnail-item {
+                width: 140px;
+                cursor: grab; /* 显示抓取光标 */
+                touch-action: pan-y pinch-zoom; /* 允许垂直滑动和缩放 */
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            /* 当用户触摸/拖动时 */
+            .thumbnail-item:active {
+                cursor: grabbing;
+                transform: scale(1.05);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            }
+            
+            .thumbnail-item.active {
+                transform: scale(1.15) !important;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+                z-index: 10 !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
+                border: 2px solid transparent !important;
+            }
+            
+            .thumbnail-item:hover {
+                transform: scale(1) !important;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            
+            /* 优化移动端缩略图滚动 */
+            .thumbnail-container::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .thumbnail-container::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.05);
+                border-radius: 2px;
+            }
+            
+            .thumbnail-container::-webkit-scrollbar-thumb {
+                background-color: var(--accent-color);
+                border-radius: 2px;
+                opacity: 0.7;
+            }
+            
+            /* 添加滑动指示器 */
+            .thumbnail-nav::after {
+                content: '';
+                position: absolute;
+                bottom: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background: var(--accent-color);
+                opacity: 0.3;
+                border-radius: 2px;
+            }
+            
+            /* 增强触摸反馈 */
+            .thumbnail-item img {
+                transition: transform 0.2s ease;
+            }
+            
+            .thumbnail-item:active img {
+                transform: scale(1.02);
+            }
+            
+            /* === 移动端返回顶部按钮修复 - 保证可点击 === */
+            .back-to-top {
+                position: fixed !important;
+                bottom: 30px !important;
+                left: 50% !important;
+                transform: translateX(-50%) translateY(150px) !important;
+                padding: 14px 28px !important;
+                font-size: 1rem !important;
+                z-index: 10000 !important; /* 最高层级 */
+                min-width: 150px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background-color: var(--accent-color) !important;
+                color: white !important;
+                border-radius: 35px !important;
+                box-shadow: 0 12px 30px rgba(0,122,255,0.5) !important;
+                border: 3px solid rgba(255, 255, 255, 0.4) !important;
+                font-weight: 700 !important;
+                letter-spacing: 0.5px !important;
+                
+                /* 确保按钮在移动端完全可点击 */
+                opacity: 0 !important;
+                visibility: hidden !important;
+                pointer-events: auto !important; /* 强制允许点击 */
+                transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+                -webkit-tap-highlight-color: rgba(0,122,255,0.3) !important;
+                tap-highlight-color: rgba(0,122,255,0.3) !important;
+                touch-action: manipulation !important;
+            }
+            
+            .back-to-top.show {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto !important; /* 确保显示时可点击 */
+                transform: translateX(-50%) translateY(0) !important;
+                animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            }
+            
+            .back-to-top:hover {
+                background-color: #0056cc !important;
+                transform: translateX(-50%) translateY(-5px) !important;
+                box-shadow: 0 18px 35px rgba(0,122,255,0.6) !important;
+            }
+            
+            /* 移动端返回顶部按钮动画 */
+            @keyframes bounceIn {
+                0% {
+                    transform: translateX(-50%) translateY(150px);
+                    opacity: 0;
+                }
+                60% {
+                    transform: translateX(-50%) translateY(-15px);
+                    opacity: 1;
+                }
+                80% {
+                    transform: translateX(-50%) translateY(8px);
+                }
+                100% {
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+            
+            /* === 修复移动端点击区域 === */
+            .back-to-top::after {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                z-index: -1;
+            }
+        }
+
+        .thumbnail-item.active {
+            box-shadow: 0 5px 15px rgba(0,122,255,0.2);
+        }
+
+        .thumbnail-item:active {
+            transform: none !important;
+            transition: none !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .thumbnail-info {
+            padding: 10px;
+            transition: var(--transition);
+        }
+
+        .thumbnail-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .thumbnail-tag {
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+        }
+
+        .no-other-works {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .detail-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        .detail-image {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            background-color: #fff;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .detail-image img.limited-width {
+            max-width: 790px;
+            width: 100%;
+            height: auto;
+        }
+
+        .category-indicator {
+            text-align: center;
+            margin: 10px 0 30px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .category-indicator .category-name {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            /* 移动端额外防止双击缩放 */
+            html {
+                touch-action: manipulation;
+                -ms-touch-action: manipulation;
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
+            
+            body {
+                touch-action: manipulation;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+                padding-bottom: 120px; /* 增加底部空间给按钮 */
+                overflow-x: hidden;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .detail-header {
+                padding: 50px 20px 25px;
+            }
+            
+            .back-home {
+                position: static;
+                display: inline-block;
+                margin-bottom: 20px;
+                margin-right: 10px;
+            }
+            
+            .card-btn {
+                position: static;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+            
+            .detail-container {
+                width: 100vw;
+                max-width: 100vw;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            
+            .detail-image {
+                width: 100vw;
+                height: auto;
+                margin: 0;
+                padding: 0;
+                border-radius: 0;
+                box-shadow: none;
+                background-color: transparent;
+                display: block;
+                position: relative;
+                left: 0;
+                right: 0;
+                transform: none;
+            }
+            
+            .detail-image img {
+                width: 100vw;
+                height: auto;
+                max-width: 100vw;
+                display: block;
+                margin: 0;
+                padding: 0;
+                border-radius: 0;
+                object-fit: contain;
+                background-color: #fff;
+            }
+            
+            .detail-image img.limited-width {
+                max-width: 100vw;
+                width: 100vw;
+            }
+            
+            .thumbnail-nav {
+                padding: 0 10px;
+                margin-bottom: 20px;
+            }
+            
+            .card-content {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            /* 移动端按钮防双击缩放 */
+            button, .card-btn, .close-btn, .back-home, .back-to-top {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent !important;
+                tap-highlight-color: transparent !important;
+            }
+            
+            .thumbnail-item {
+                touch-action: pan-y;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .thumbnail-item {
+                width: 120px;
+            }
+
+            .thumbnail-item img {
+                height: 80px;
+            }
+            
+            .thumbnail-container {
+                gap: 10px;
+            }
+            
+            .detail-header h1 {
+                font-size: calc(var(--detail-title-size-mobile) * 0.9) !important;
+                font-weight: var(--detail-title-weight) !important;
+                -webkit-text-stroke: 0.2px transparent;
+            }
+            
+            .back-to-top {
+                bottom: 25px !important;
+                padding: 12px 24px !important;
+                font-size: 0.95rem !important;
+                min-width: 140px !important;
+            }
+        }
+    </style>
+    
+    <!-- 添加Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="detail-header">
+        <a href="index.html" class="back-home">← 返回首页</a>
+        <button class="card-btn" id="cardBtn">
+            <i class="fas fa-id-card"></i> 个人名片
+        </button>
+        <h1 id="detail-title">作品详情</h1>
+        <p class="subtitle" id="detail-subtitle">查看完整作品信息、设计理念和实现细节</p>
+    </header>
+
+    <!-- 名片弹窗 -->
+    <div class="card-modal" id="cardModal">
+        <div class="card-content">
+            <button class="close-btn" id="closeBtn">&times;</button>
+            
+            <div class="card-header">
+                <img src="images/logo_cover.jpg" alt="个人头像" class="card-avatar">
+                <div>
+                    <div class="card-name">Mr.Lee</div>
+                    <div class="card-title">资深产品视觉设计师</div>
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="info-text">
+                        <strong>电话:</strong> 暂无
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fab fa-weixin"></i>
+                    </div>
+                    <div class="info-text">
+                        <strong>微信:</strong> lsy1974187983
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="info-text">
+                        <strong>擅长软件:</strong>
+                        <div class="software-list">
+                            <span class="software-tag">Photoshop</span>
+                            <span class="software-tag">Illustrator</span>
+                            <span class="software-tag">Cinema 4D </span>
+                            <span class="software-tag">RedShift</span>
+                            <span class="software-tag">After Effects</span>
+                            <span class="software-tag">AIGC</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="qr-code">
+                <div class="qr-title">微信好友二维码</div>
+                <div class="qr-img">
+                    <img src="images/微信二维码_cover.jpg" alt="微信好友二维码" width="100%">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 类别提示 -->
+    <div class="category-indicator" id="category-indicator">
+        当前查看：<span class="category-name" id="current-category">产品精修</span> 类作品
+    </div>
+
+    <!-- 缩略图导航栏 -->
+    <div class="thumbnail-nav">
+        <h3 id="thumbnail-title">同类型作品</h3>
+        <div class="thumbnail-container" id="thumbnail-container">
+            <!-- 缩略图将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 大图预览 -->
+    <div class="detail-container">
+        <div class="detail-image">
+            <img id="detail-img" src="" alt="作品图片">
+        </div>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i> 返回顶部
+    </button>
+
+    <!-- 功能脚本 -->
+    <script>
+        // === 图片防盗保护系统 - 与首页一致 ===
+        class ImageProtection {
+            constructor(options = {}) {
+                this.config = {
+                    showRightClickWarning: false,  // 关闭弹窗警告
+                    enableDragProtection: true,
+                    enableKeyboardProtection: true,
+                    ...options
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('🔒 图片防盗系统初始化...');
+                
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        this.setupProtection();
+                    });
+                } else {
+                    this.setupProtection();
+                }
+            }
+            
+            setupProtection() {
+                try {
+                    if (this.config.showRightClickWarning) {
+                        this.disableRightClick();
+                    } else {
+                        // 即使不显示警告，也要禁用右键
+                        this.disableRightClickSilent();
+                    }
+                    
+                    if (this.config.enableDragProtection) {
+                        this.disableDrag();
+                    }
+                    
+                    if (this.config.enableKeyboardProtection) {
+                        this.disableKeyboardShortcuts();
+                    }
+                    
+                    this.protectAllImages();
+                    
+                    console.log('✅ 图片防盗系统已启用（无弹窗模式）');
+                } catch (error) {
+                    console.warn('⚠️ 图片保护系统部分功能初始化失败:', error);
+                }
+            }
+            
+            disableRightClickSilent() {
+                // 静默禁用右键，不显示警告
+                document.addEventListener('contextmenu', (e) => {
+                    const target = e.target;
+                    const isImageElement = this.isImageRelatedElement(target);
+                    
+                    if (isImageElement) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+            
+            disableRightClick() {
+                document.addEventListener('contextmenu', (e) => {
+                    const target = e.target;
+                    const isImageElement = this.isImageRelatedElement(target);
+                    
+                    if (isImageElement) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+            
+            disableDrag() {
+                document.addEventListener('dragstart', (e) => {
+                    if (e.target.tagName === 'IMG' || this.isImageRelatedElement(e.target)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }, true);
+                
+                const protectDrag = () => {
+                    document.querySelectorAll('img').forEach(img => {
+                        img.setAttribute('draggable', 'false');
+                        img.style.userDrag = 'none';
+                    });
+                };
+                
+                protectDrag();
+                
+                const observer = new MutationObserver(() => {
+                    protectDrag();
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+            
+            disableKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    // 禁用保存快捷键
+                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // 禁用截图快捷键
+                    if (e.key === 'PrintScreen') {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // 禁用复制快捷键（仅对图片相关元素）
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                        const selection = window.getSelection();
+                        const selectedElement = selection.anchorNode?.parentElement;
+                        
+                        if (selectedElement && this.isImageRelatedElement(selectedElement)) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                    
+                    // 开发者工具快捷键禁用（静默）
+                    if (e.key === 'F12' || 
+                        (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                        (e.metaKey && e.altKey && e.key === 'I') ||
+                        (e.ctrlKey && e.shiftKey && e.key === 'J') || 
+                        (e.metaKey && e.altKey && e.key === 'J') ||
+                        (e.ctrlKey && e.shiftKey && e.key === 'C') || 
+                        (e.metaKey && e.altKey && e.key === 'C') ||
+                        (e.ctrlKey && e.key === 'u') || (e.metaKey && e.key === 'u') ||
+                        e.key === 'F2' || e.key === 'F8' || e.key === 'F10' ||
+                        (e.ctrlKey && e.shiftKey && e.key === 'K') ||
+                        (e.metaKey && e.altKey && e.key === 'K')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }, true);
+                
+                // 防止开发者工具通过其他方式打开
+                this.preventDevToolsOpening();
+            }
+            
+            // 防止开发者工具通过其他方式打开
+            preventDevToolsOpening() {
+                const checkDevTools = () => {
+                    const threshold = 160;
+                    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                    
+                    if (widthThreshold || heightThreshold) {
+                        // 静默处理，不显示警告
+                        console.log('检测到开发者工具已打开');
+                    }
+                };
+                
+                setInterval(checkDevTools, 1000);
+                window.addEventListener('resize', checkDevTools);
+            }
+            
+            protectAllImages() {
+                const protectImages = () => {
+                    document.querySelectorAll('img').forEach(img => {
+                        img.setAttribute('oncontextmenu', 'return false;');
+                        img.setAttribute('ondragstart', 'return false;');
+                        
+                        if (!img.style.pointerEvents) {
+                            img.style.cssText += `
+                                pointer-events: none !important;
+                                user-select: none !important;
+                                -webkit-user-select: none !important;
+                                -moz-user-select: none !important;
+                                -ms-user-select: none !important;
+                                -webkit-user-drag: none !important;
+                                -moz-user-drag: none !important;
+                                -ms-user-drag: none !important;
+                                user-drag: none !important;
+                            `;
+                        }
+                        
+                        this.addImageOverlay(img);
+                    });
+                };
+                
+                protectImages();
+                
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                            protectImages();
+                        }
+                    });
+                });
+                
+                observer.observe(document.body, { 
+                    childList: true, 
+                    subtree: true,
+                    attributes: false,
+                    characterData: false
+                });
+            }
+            
+            addImageOverlay(img) {
+                const parent = img.parentElement;
+                if (!parent) return;
+                
+                if (parent.querySelector('.image-protection-overlay')) {
+                    return;
+                }
+                
+                const parentStyle = window.getComputedStyle(parent);
+                if (parentStyle.position === 'static') {
+                    parent.style.position = 'relative';
+                }
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'image-protection-overlay';
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.001);
+                    z-index: 1000;
+                    pointer-events: none;
+                `;
+                
+                parent.appendChild(overlay);
+            }
+            
+            isImageRelatedElement(element) {
+                if (!element) return false;
+                
+                if (element.tagName === 'IMG') return true;
+                
+                const parent = element.closest('.gallery-item, .detail-image, .thumbnail-item, .image-container');
+                if (parent) return true;
+                
+                const style = window.getComputedStyle(element);
+                if (style.backgroundImage && style.backgroundImage !== 'none') {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            showWarning(message) {
+                // 空函数，不显示任何警告弹窗
+                return;
+            }
+            
+            reinitialize() {
+                this.protectAllImages();
+            }
+        }
+
+        // 初始化图片保护系统
+        function initImageProtection() {
+            setTimeout(() => {
+                try {
+                    window.imageProtection = new ImageProtection({
+                        showRightClickWarning: false, // 关闭弹窗警告
+                        enableDragProtection: true,
+                        enableKeyboardProtection: true
+                    });
+                    
+                    window.ImageProtection = ImageProtection;
+                    
+                    window.reprotectImages = () => {
+                        if (window.imageProtection) {
+                            window.imageProtection.reinitialize();
+                        }
+                    };
+                    
+                } catch (error) {
+                    console.warn('图片保护系统初始化失败:', error);
+                }
+            }, 800);
+        }
+
+        // --- 名片弹窗功能 ---
+        const cardBtn = document.getElementById('cardBtn');
+        const cardModal = document.getElementById('cardModal');
+        const closeBtn = document.getElementById('closeBtn');
+        
+        cardBtn.addEventListener('click', function() {
+            cardModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeBtn.addEventListener('click', function() {
+            cardModal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        });
+        
+        cardModal.addEventListener('click', function(e) {
+            if (e.target === cardModal) {
+                cardModal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && cardModal.classList.contains('show')) {
+                cardModal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // === 返回顶部按钮功能 - 优化移动端触控滑动检测 ===
+        function initBackToTop() {
+            const backToTop = document.getElementById('backToTop');
+            
+            if (!backToTop) {
+                console.error('返回顶部按钮元素未找到');
+                return;
+            }
+            
+            console.log('初始化返回顶部按钮，当前设备:', window.innerWidth <= 768 ? '移动端' : '电脑端');
+            
+            // 确保按钮在DOM中正确显示
+            backToTop.style.display = 'flex';
+            
+            // 节流变量
+            let scrollTimer = null;
+            
+            // 显示/隐藏按钮
+            function toggleBackToTop() {
+                const scrollY = window.scrollY || document.documentElement.scrollTop;
+                const threshold = 300;
+                
+                if (scrollY > threshold) {
+                    backToTop.classList.add('show');
+                    console.log('显示返回顶部按钮，滚动位置:', scrollY);
+                } else {
+                    backToTop.classList.remove('show');
+                    console.log('隐藏返回顶部按钮，滚动位置:', scrollY);
+                }
+            }
+            
+            // 强制显示按钮函数
+            function forceShowBackToTop() {
+                if (!backToTop) return;
+                
+                backToTop.classList.add('show');
+                console.log('强制显示返回顶部按钮');
+                
+                // 8秒后自动隐藏（如果未滚动到顶部）
+                setTimeout(() => {
+                    const scrollY = window.scrollY || document.documentElement.scrollTop;
+                    if (scrollY > 100) {
+                        backToTop.classList.remove('show');
+                        console.log('8秒后自动隐藏按钮');
+                    }
+                }, 8000);
+            }
+            
+            // === 修复的点击事件 - 确保移动端有效 ===
+            function handleBackToTopClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('点击返回顶部按钮，开始滚动');
+                
+                // 记录当前滚动位置
+                const startPosition = window.scrollY || document.documentElement.scrollTop;
+                const startTime = Date.now();
+                
+                // 移动端使用更可靠的滚动方式
+                if ('scrollBehavior' in document.documentElement.style) {
+                    // 支持平滑滚动的浏览器
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 兼容老式浏览器和某些移动端浏览器
+                    const duration = 600; // 动画持续时间
+                    const easeInOutCubic = t => t < 0.5 
+                        ? 4 * t * t * t 
+                        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                    
+                    function scrollStep() {
+                        const currentTime = Date.now();
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const easeProgress = easeInOutCubic(progress);
+                        
+                        const newPosition = startPosition * (1 - easeProgress);
+                        window.scrollTo(0, newPosition);
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(scrollStep);
+                        } else {
+                            // 滚动完成后隐藏按钮
+                            backToTop.classList.remove('show');
+                            console.log('滚动到顶部完成');
+                        }
+                    }
+                    
+                    requestAnimationFrame(scrollStep);
+                }
+                
+                // 备用方案：直接滚动到顶部
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                    
+                    // 隐藏按钮
+                    backToTop.classList.remove('show');
+                }, 100);
+            }
+            
+            // 为按钮添加点击事件 - 使用更可靠的方式
+            backToTop.addEventListener('click', handleBackToTopClick);
+            
+            // 移动端额外添加触摸结束事件
+            if (window.innerWidth <= 768) {
+                backToTop.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    handleBackToTopClick(e);
+                });
+            }
+            
+            // 监听滚动事件 - 使用节流提高性能
+            window.addEventListener('scroll', function() {
+                if (scrollTimer) {
+                    clearTimeout(scrollTimer);
+                }
+                
+                scrollTimer = setTimeout(function() {
+                    toggleBackToTop();
+                }, 150);
+            }, { passive: true });
+            
+            // === 移动端触控滑动检测 - 仅针对详情图片区域 ===
+            // 优化：将下滑触发阈值从15px改为25px
+            if (window.innerWidth <= 768) {
+                const detailImage = document.querySelector('.detail-image');
+                if (detailImage) {
+                    let touchStartY = 0;
+                    let touchStartTime = 0;
+                    let isTouchActive = false;
+                    let lastTriggerTime = 0;
+                    let isInThumbnailArea = false;
+                    
+                    // 检查是否在缩略图区域内
+                    function checkIfInThumbnailArea(element) {
+                        if (!element) return false;
+                        const thumbnailContainer = document.querySelector('.thumbnail-container');
+                        if (!thumbnailContainer) return false;
+                        return thumbnailContainer.contains(element);
+                    }
+                    
+                    // 触摸开始 - 只在详情图片区域监听
+                    detailImage.addEventListener('touchstart', function(e) {
+                        if (e.touches.length === 1) {
+                            // 检查触摸目标是否在缩略图区域
+                            const targetElement = e.target;
+                            isInThumbnailArea = checkIfInThumbnailArea(targetElement) || 
+                                               checkIfInThumbnailArea(targetElement.closest('.thumbnail-item'));
+                            
+                            // 如果不在缩略图区域，才记录触摸信息
+                            if (!isInThumbnailArea) {
+                                touchStartY = e.touches[0].clientY;
+                                touchStartTime = Date.now();
+                                isTouchActive = true;
+                            }
+                        }
+                    }, { passive: true });
+                    
+                    // 触摸移动 - 检测下滑手势
+                    detailImage.addEventListener('touchmove', function(e) {
+                        // 如果触摸开始于缩略图区域，则不处理
+                        if (!isTouchActive || isInThumbnailArea || e.touches.length !== 1) return;
+                        
+                        const currentY = e.touches[0].clientY;
+                        const deltaY = currentY - touchStartY;
+                        const currentTime = Date.now();
+                        const timeDiff = currentTime - touchStartTime;
+                        
+                        // 防抖动：避免频繁触发
+                        if (currentTime - lastTriggerTime < 500) return;
+                        
+                        // 优化点：将下滑触发阈值从15px改为25px
+                        if (deltaY > 25) {
+                            forceShowBackToTop();
+                            lastTriggerTime = currentTime;
+                            
+                            // 轻微振动反馈（如果设备支持）
+                            if (navigator.vibrate) {
+                                navigator.vibrate(10);
+                            }
+                        }
+                    }, { passive: true });
+                    
+                    // 触摸结束
+                    detailImage.addEventListener('touchend', function(e) {
+                        if (!isTouchActive) return;
+                        
+                        const currentTime = Date.now();
+                        const timeDiff = currentTime - touchStartTime;
+                        
+                        // 触摸结束时检查快速下滑
+                        if (timeDiff < 500) {
+                            forceShowBackToTop();
+                        }
+                        
+                        isTouchActive = false;
+                        isInThumbnailArea = false;
+                    }, { passive: true });
+                    
+                    // 为缩略图容器添加触摸事件，防止在缩略图区域滑动时触发返回顶部按钮
+                    const thumbnailContainer = document.querySelector('.thumbnail-container');
+                    if (thumbnailContainer) {
+                        thumbnailContainer.addEventListener('touchstart', function(e) {
+                            // 在缩略图区域开始触摸时，标记为在缩略图区域
+                            isInThumbnailArea = true;
+                        }, { passive: true });
+                        
+                        thumbnailContainer.addEventListener('touchend', function(e) {
+                            // 触摸结束后重置标记
+                            setTimeout(() => {
+                                isInThumbnailArea = false;
+                            }, 100);
+                        }, { passive: true });
+                    }
+                }
+                
+                // 滚轮事件 - 仅监听向下滚动
+                let wheelTimer = null;
+                let wheelCount = 0;
+                let lastWheelTime = 0;
+                
+                document.addEventListener('wheel', function(e) {
+                    // 检测向下滚动
+                    if (e.deltaY > 0) {
+                        const currentTime = Date.now();
+                        
+                        // 防抖动：避免频繁触发
+                        if (currentTime - lastTriggerTime < 500) return;
+                        
+                        wheelCount++;
+                        
+                        // 向下滚动1次就触发（更灵敏）
+                        if (wheelCount >= 1) {
+                            forceShowBackToTop();
+                            wheelCount = 0;
+                            lastTriggerTime = currentTime;
+                        }
+                        
+                        // 重置计数器
+                        if (wheelTimer) clearTimeout(wheelTimer);
+                        wheelTimer = setTimeout(() => {
+                            wheelCount = 0;
+                        }, 800);
+                        
+                        lastWheelTime = currentTime;
+                    }
+                }, { passive: true });
+                
+                // 页面加载后检查是否显示按钮
+                setTimeout(() => {
+                    const scrollY = window.scrollY || document.documentElement.scrollTop;
+                    if (scrollY > 100) {
+                        forceShowBackToTop();
+                    }
+                }, 3000);
+            }
+            
+            // 初始检查
+            setTimeout(toggleBackToTop, 100);
+            
+            // 添加resize事件监听
+            window.addEventListener('resize', function() {
+                setTimeout(toggleBackToTop, 100);
+            });
+            
+            // 页面显示时检查按钮状态
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    setTimeout(toggleBackToTop, 100);
+                }
+            });
+        }
+
+        // 作品数据
+        const worksData = [
+            {
+                id: 1,
+                title: "亚马逊-挂脖风扇",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/挂脖风扇_cover.jpg",
+                detailImage: "images/挂脖风扇_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 2,
+                title: "汽车渲染案例",
+                tag: "Retouching",
+                category: "render",
+                categoryName: "产品渲染",
+                coverImage: "images/汽车渲染_cover.png",
+                detailImage: "images/汽车渲染_detail.jpg",
+                description: "化妆品光影重塑项目专注于通过光影效果突出产品的奢华感和质感。通过精细的反射和阴影处理，使产品看起来更加立体、生动。特别注重瓶身标签的细节处理和液体质感的呈现。"
+            },
+            {
+                id: 3,
+                title: "产品精修",
+                tag: "Rendering",
+                category: "refine",
+                categoryName: "产品精修",
+                coverImage: "images/智能手表_cover.png",
+                detailImage: "images/产品精修_detail.jpg",
+                description: "智能手表3D场景渲染项目通过构建逼真的使用场景，展示产品在实际环境中的效果。场景设计注重科技感和现代感，与产品定位完美契合。材质渲染和光照设置都经过精心调整，以达到最佳视觉效果。"
+            },
+            {
+                id: 4,
+                title: "产品摄影",
+                tag: "Rendering",
+                category: "photography",
+                categoryName: "产品摄影",
+                coverImage: "images/产品拍摄_cover.png",
+                detailImage: "images/产品摄影_detail.jpg",
+                description: "工业零件爆炸图项目通过3D渲染技术展示产品的内部结构和工作原理。每个零件都经过精细建模和材质设置，爆炸图的布局清晰展示了产品的组装逻辑和技术特点。"
+            },
+            {
+                id: 5,
+                title: "筋膜枪详情页1",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/筋膜枪详情页1_cover.png",
+                detailImage: "images/筋膜枪详情1_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            },
+            {
+                id: 6,
+                title: "产品渲染案例1",
+                tag: "Product Rendering",
+                category: "render",
+                categoryName: "产品渲染案例1",
+                coverImage: "images/挂腰风扇渲染_cover.png",
+                detailImage: "images/挂腰风扇渲染_detail.jpg",
+                description: "厨房用具场景图设计通过构建家庭厨房使用场景，展示产品在实际环境中的实用性和美观性。设计注重生活气息和实用性，使消费者能够直观感受到产品带来的便利和美好。"
+            },
+            {
+                id: 7,
+                title: "亚马逊-抽油泵",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/抽油泵_cover.jpg",
+                detailImage: "images/抽油泵_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 8,
+                title: "亚马逊-挂腰风扇",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/挂腰风扇_cover.jpg",
+                detailImage: "images/挂腰风扇_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 9,
+                title: "亚马逊-挂腰风扇2",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/挂腰风扇2_cover.jpg",
+                detailImage: "images/挂腰风扇2_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 10,
+                title: "亚马逊-夹子风扇",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/夹子风扇_cover.jpg",
+                detailImage: "images/夹子风扇_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 11,
+                title: "亚马逊-工业喷雾风扇",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/工业喷雾风扇_cover.jpg",
+                detailImage: "images/工业喷雾风扇_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 12,
+                title: "亚马逊-男士剃毛器",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/男士剃毛器_cover.jpg",
+                detailImage: "images/男士剃毛器_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 13,
+                title: "亚马逊-女士剃毛器",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/女士剃毛器_cover.jpg",
+                detailImage: "images/女士剃毛器_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 14,
+                title: "亚马逊-烟熏器",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/烟熏器_cover.jpg",
+                detailImage: "images/烟熏器_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 15,
+                title: "亚马逊-金属男款表带",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/金属男款表带_cover.jpg",
+                detailImage: "images/金属男款表带_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 16,
+                title: "亚马逊-户外表带",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/户外表带_cover.jpg",
+                detailImage: "images/户外表带_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 17,
+                title: "亚马逊-金属女款表带",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/金属女款表带_cover.jpg",
+                detailImage: "images/金属女款表带_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 18,
+                title: "亚马逊-八爪风扇主图",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/八爪风扇_cover.jpg",
+                detailImage: "images/八爪喷雾风扇_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 19,
+                title: "亚马逊-南瓜刀、打印机主图",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/南瓜刀_cover.jpg",
+                detailImage: "images/三寸打印机_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 20,
+                title: "亚马逊-扫码枪、缝纫机A+",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/扫码枪_cover.jpg",
+                detailImage: "images/扫码枪_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 21,
+                title: "亚马逊-玩具架A+",
+                tag: "Toy rack",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/玩具架_cover.jpg",
+                detailImage: "images/玩具架_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 22,
+                title: "亚马逊-男士钱包",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/男士钱包_cover.jpg",
+                detailImage: "images/男士钱包_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 23,
+                title: "亚马逊-电蚊拍",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/电蚊拍_cover.jpg",
+                detailImage: "images/电蚊拍_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 24,
+                title: "亚马逊-咖啡加热垫",
+                tag: "Retouching",
+                category: "amazon",
+                categoryName: "亚马逊主图A+",
+                coverImage: "images/咖啡加热垫_cover.jpg",
+                detailImage: "images/咖啡加热垫_detail.jpg",
+                description: "这款耳机细节精修项目专注于捕捉产品的每一个细节。通过对金属表面、塑料材质和织物纹理的精细处理，展现了产品的高端质感。特别注重光影效果的处理，使产品在视觉上更加立体、生动。"
+            },
+            {
+                id: 25,
+                title: "产品渲染案例2",
+                tag: "Retouching",
+                category: "render",
+                categoryName: "产品渲染案例2",
+                coverImage: "images/八爪风扇渲染_cover.jpg",
+                detailImage: "images/八爪风扇渲染_detail.jpg",
+                description: "化妆品光影重塑项目专注于通过光影效果突出产品的奢华感和质感。通过精细的反射和阴影处理，使产品看起来更加立体、生动。特别注重瓶身标签的细节处理和液体质感的呈现。"
+            },
+            {
+                id: 26,
+                title: "产品渲染案例3",
+                tag: "Retouching",
+                category: "render",
+                categoryName: "产品渲染案例3",
+                coverImage: "images/抽油泵渲染_cover.jpg",
+                detailImage: "images/抽油泵渲染_detail.jpg",
+                description: "化妆品光影重塑项目专注于通过光影效果突出产品的奢华感和质感。通过精细的反射和阴影处理，使产品看起来更加立体、生动。特别注重瓶身标签的细节处理和液体质感的呈现。"
+            },
+            {
+                id: 27,
+                title: "产品渲染案例4",
+                tag: "Retouching",
+                category: "render",
+                categoryName: "产品渲染案例4",
+                coverImage: "images/剃毛器渲染_cover.jpg",
+                detailImage: "images/剃毛器渲染_detail.jpg",
+                description: "化妆品光影重塑项目专注于通过光影效果突出产品的奢华感和质感。通过精细的反射和阴影处理，使产品看起来更加立体、生动。特别注重瓶身标签的细节处理和液体质感的呈现。"
+            },
+            {
+                id: 28,
+                title: "产品渲染案例5",
+                tag: "Retouching",
+                category: "render",
+                categoryName: "产品渲染案例5",
+                coverImage: "images/其他产品渲染_cover.jpg",
+                detailImage: "images/其他产品渲染_detail.jpg",
+                description: "化妆品光影重塑项目专注于通过光影效果突出产品的奢华感和质感。通过精细的反射和阴影处理，使产品看起来更加立体、生动。特别注重瓶身标签的细节处理和液体质感的呈现。"
+            },
+            {
+                id: 29,
+                title: "筋膜枪详情页2",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/筋膜枪详情2_cover.jpg",
+                detailImage: "images/筋膜枪详情2_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            },
+            {
+                id: 30,
+                title: "筋膜枪详情页3",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/筋膜枪详情3_cover.jpg",
+                detailImage: "images/筋膜枪详情3_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            },
+            {
+                id: 31,
+                title: "冲牙器详情页",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/冲牙器_cover.jpg",
+                detailImage: "images/冲牙器详情_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            },
+            {
+                id: 32,
+                title: "桑拿房详情页",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/桑拿房_cover.jpg",
+                detailImage: "images/桑拿房详情_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            },
+            {
+                id: 33,
+                title: "打底裤详情页",
+                tag: "Details",
+                category: "details",
+                categoryName: "详情页",
+                coverImage: "images/打底裤详情_cover.jpg",
+                detailImage: "images/打底裤_detail.jpg",
+                description: "户外电源亚马逊A+页面设计专注于提升产品的在线展示效果和销售转化率。通过精心设计的布局、对比图和场景展示，全方位展示产品特点和优势。设计风格现代、专业，符合品牌定位。"
+            }
+        ];
+
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function getWorkById(id) {
+            return worksData.find(work => work.id === parseInt(id));
+        }
+
+        function getSameCategoryWorks(currentId, category) {
+            return worksData.filter(work => 
+                work.category === category && work.id !== parseInt(currentId)
+            );
+        }
+
+        function getCategoryName(category) {
+            const work = worksData.find(w => w.category === category);
+            return work ? work.categoryName : category;
+        }
+
+        function updateDetailPage() {
+            const workId = getQueryParam('id');
+            const work = getWorkById(workId || 1);
+            
+            if (!work) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.title = `${work.title} | 作品详情`;
+            document.getElementById('detail-title').textContent = work.title;
+            document.getElementById('detail-subtitle').textContent = `查看完整作品信息、设计理念和实现细节`;
+            document.getElementById('current-category').textContent = work.categoryName;
+            
+            const detailImg = document.getElementById('detail-img');
+            detailImg.src = work.detailImage;
+            detailImg.alt = work.title;
+            detailImg.setAttribute('oncontextmenu', 'return false;');
+            detailImg.setAttribute('ondragstart', 'return false;');
+            
+            const limitedWidthIds = [5, 28, 29, 32];
+            if (limitedWidthIds.includes(work.id)) {
+                detailImg.classList.add('limited-width');
+            } else {
+                detailImg.classList.remove('limited-width');
+            }
+            
+            detailImg.onerror = function() {
+                console.log('详情图片加载失败，尝试使用封面图片...');
+                this.src = work.coverImage || 'images/placeholder.jpg';
+                this.style.backgroundColor = '#eee';
+                this.style.minHeight = '300px';
+            };
+            
+            updateThumbnailNav(work.id, work.category);
+            
+            setTimeout(() => {
+                ensureFirstThumbnailVisible();
+            }, 100);
+        }
+
+        function ensureFirstThumbnailVisible() {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const firstThumbnail = thumbnailContainer.querySelector('.thumbnail-item:first-child');
+            
+            if (firstThumbnail) {
+                thumbnailContainer.scrollLeft = 0;
+            }
+        }
+
+        function updateThumbnailNav(activeId, category) {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const sameCategoryWorks = getSameCategoryWorks(activeId, category);
+            
+            const thumbnailTitle = document.getElementById('thumbnail-title');
+            const categoryName = getCategoryName(category);
+            thumbnailTitle.textContent = `其他${categoryName}作品`;
+            
+            if (sameCategoryWorks.length === 0) {
+                thumbnailContainer.innerHTML = `
+                    <div class="no-other-works">
+                        当前没有其他${categoryName}作品
+                    </div>
+                `;
+                return;
+            }
+            
+            thumbnailContainer.innerHTML = sameCategoryWorks.map(work => `
+                <a href="detail.html?id=${work.id}" class="thumbnail-item" data-id="${work.id}">
+                    <img src="${work.coverImage}" alt="${work.title}" loading="lazy"
+                         oncontextmenu="return false;" 
+                         ondragstart="return false;">
+                    <div class="thumbnail-info">
+                        <div class="thumbnail-title">${work.title}</div>
+                        <span class="thumbnail-tag">${work.tag}</span>
+                    </div>
+                </a>
+            `).join('');
+            
+            thumbnailContainer.querySelectorAll('img').forEach(img => {
+                img.onerror = function() {
+                    const workId = this.parentElement.getAttribute('data-id');
+                    const work = worksData.find(w => w.id === parseInt(workId));
+                    if (work && work.detailImage) {
+                        this.src = work.detailImage;
+                    } else {
+                        this.style.backgroundColor = '#eee';
+                        this.style.minHeight = '100px';
+                    }
+                };
+            });
+            
+            const placeholder = document.createElement('div');
+            placeholder.style.flexShrink = '0';
+            placeholder.style.width = '1px';
+            thumbnailContainer.appendChild(placeholder);
+            
+            initMobileCenterZoom();
+            initTouchSwipe();
+            preventClickPositionChange();
+            initThumbnailSpacing();
+        }
+
+        function initThumbnailSpacing() {
+            const thumbnails = document.querySelectorAll('.thumbnail-item');
+            
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('mouseenter', function() {
+                    const nextSibling = this.nextElementSibling;
+                    if (nextSibling && nextSibling.classList.contains('.thumbnail-item')) {
+                        nextSibling.style.transition = 'margin-left 0.3s ease';
+                    }
+                });
+                
+                thumbnail.addEventListener('mouseleave', function() {
+                    const nextSibling = this.nextElementSibling;
+                    if (nextSibling && nextSibling.classList.contains('.thumbnail-item')) {
+                        nextSibling.style.transition = 'margin-left 0.3s ease';
+                        setTimeout(() => {
+                            nextSibling.style.marginLeft = '';
+                        }, 50);
+                    }
+                });
+            });
+        }
+
+        function preventClickPositionChange() {
+            const thumbnails = document.querySelectorAll('.thumbnail-item');
+            
+            thumbnails.forEach(thumbnail => {
+                let originalTransform = '';
+                let originalMarginLeft = '';
+                let originalMarginRight = '';
+                
+                thumbnail.addEventListener('mousedown', function(e) {
+                    originalTransform = this.style.transform;
+                    originalMarginLeft = this.style.marginLeft;
+                    originalMarginRight = this.style.marginRight;
+                    this.style.transform = 'none';
+                    this.style.marginLeft = originalMarginLeft || '0';
+                    this.style.marginRight = originalMarginRight || '0';
+                    this.style.transition = 'none';
+                });
+                
+                thumbnail.addEventListener('mouseup', function(e) {
+                    if (originalTransform) {
+                        this.style.transform = originalTransform;
+                        this.style.transition = '';
+                    }
+                    if (originalMarginLeft) {
+                        this.style.marginLeft = originalMarginLeft;
+                    }
+                    if (originalMarginRight) {
+                        this.style.marginRight = originalMarginRight;
+                    }
+                });
+                
+                thumbnail.addEventListener('touchstart', function(e) {
+                    originalTransform = this.style.transform;
+                    originalMarginLeft = this.style.marginLeft;
+                    originalMarginRight = this.style.marginRight;
+                    this.style.transform = 'none';
+                    this.style.marginLeft = originalMarginLeft || '0';
+                    this.style.marginRight = originalMarginRight || '0';
+                    this.style.transition = 'none';
+                });
+                
+                thumbnail.addEventListener('touchend', function(e) {
+                    if (originalTransform) {
+                        this.style.transform = originalTransform;
+                        this.style.transition = '';
+                    }
+                    if (originalMarginLeft) {
+                        this.style.marginLeft = originalMarginLeft;
+                    }
+                    if (originalMarginRight) {
+                        this.style.marginRight = originalMarginRight;
+                    }
+                });
+            });
+        }
+
+        // 新增：触摸滑动处理函数
+        function initTouchSwipe() {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail-item');
+            
+            if (window.innerWidth <= 768) {
+                let isDragging = false;
+                let startX = 0;
+                let scrollLeft = 0;
+                let lastScrollTime = 0;
+                
+                // 触摸开始
+                thumbnailContainer.addEventListener('touchstart', function(e) {
+                    isDragging = true;
+                    startX = e.touches[0].pageX - thumbnailContainer.offsetLeft;
+                    scrollLeft = thumbnailContainer.scrollLeft;
+                    thumbnailContainer.style.scrollBehavior = 'auto';
+                });
+                
+                // 触摸移动
+                thumbnailContainer.addEventListener('touchmove', function(e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    const x = e.touches[0].pageX - thumbnailContainer.offsetLeft;
+                    const walk = (x - startX) * 1.5;
+                    thumbnailContainer.scrollLeft = scrollLeft - walk;
+                    
+                    // 节流滚动处理，提高性能
+                    const currentTime = Date.now();
+                    if (currentTime - lastScrollTime > 50) {
+                        handleThumbnailScroll();
+                        lastScrollTime = currentTime;
+                    }
+                });
+                
+                // 触摸结束
+                thumbnailContainer.addEventListener('touchend', function(e) {
+                    isDragging = false;
+                    thumbnailContainer.style.scrollBehavior = 'smooth';
+                    
+                    // 触摸结束后确保居中
+                    setTimeout(() => {
+                        const activeThumb = thumbnailContainer.querySelector('.thumbnail-item.active');
+                        if (activeThumb) {
+                            const thumbLeft = activeThumb.offsetLeft;
+                            const thumbWidth = activeThumb.offsetWidth;
+                            const containerWidth = thumbnailContainer.offsetWidth;
+                            
+                            thumbnailContainer.scrollTo({
+                                left: thumbLeft - (containerWidth - thumbWidth) / 2,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 100);
+                });
+                
+                // 鼠标拖动支持（适用于平板等设备）
+                thumbnailContainer.addEventListener('mousedown', function(e) {
+                    isDragging = true;
+                    startX = e.pageX - thumbnailContainer.offsetLeft;
+                    scrollLeft = thumbnailContainer.scrollLeft;
+                    thumbnailContainer.style.scrollBehavior = 'auto';
+                    e.preventDefault();
+                });
+                
+                window.addEventListener('mousemove', function(e) {
+                    if (!isDragging) return;
+                    const x = e.pageX - thumbnailContainer.offsetLeft;
+                    const walk = (x - startX) * 1.5;
+                    thumbnailContainer.scrollLeft = scrollLeft - walk;
+                    
+                    const currentTime = Date.now();
+                    if (currentTime - lastScrollTime > 50) {
+                        handleThumbnailScroll();
+                        lastScrollTime = currentTime;
+                    }
+                });
+                
+                window.addEventListener('mouseup', function() {
+                    isDragging = false;
+                    thumbnailContainer.style.scrollBehavior = 'smooth';
+                });
+            }
+        }
+
+        function initMobileCenterZoom() {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail-item');
+            
+            thumbnailContainer.removeEventListener('scroll', handleThumbnailScroll);
+            
+            if (window.innerWidth <= 768) {
+                let ticking = false;
+                
+                const optimizedScrollHandler = () => {
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            handleThumbnailScroll();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                };
+                
+                thumbnailContainer.addEventListener('scroll', optimizedScrollHandler);
+                
+                setTimeout(() => {
+                    handleThumbnailScroll();
+                }, 100);
+            } else {
+                thumbnails.forEach(thumb => {
+                    thumb.classList.remove('active');
+                });
+            }
+        }
+
+        function handleThumbnailScroll() {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail-item');
+            
+            if (thumbnails.length === 0) return;
+            
+            const containerRect = thumbnailContainer.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+            
+            let closestThumb = null;
+            let minDistance = Infinity;
+            
+            thumbnails.forEach(thumb => {
+                const thumbRect = thumb.getBoundingClientRect();
+                const thumbCenter = thumbRect.left + thumbRect.width / 2;
+                const distance = Math.abs(thumbCenter - containerCenter);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestThumb = thumb;
+                }
+            });
+            
+            thumbnails.forEach(thumb => {
+                thumb.classList.remove('active');
+                thumb.style.transform = '';
+                thumb.style.marginLeft = '';
+                thumb.style.marginRight = '';
+                thumb.style.zIndex = '';
+                thumb.style.boxShadow = '';
+            });
+            
+            if (closestThumb && minDistance < closestThumb.offsetWidth) {
+                closestThumb.classList.add('active');
+                
+                if (window.innerWidth <= 768) {
+                    closestThumb.style.transform = 'scale(1.15)';
+                    closestThumb.style.marginLeft = '10px';
+                    closestThumb.style.marginRight = '10px';
+                    closestThumb.style.zIndex = '10';
+                    closestThumb.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+                }
+            }
+        }
+
+        // 防止双击缩放的功能
+        function preventDoubleTapZoom() {
+            if (window.innerWidth <= 768) {
+                document.querySelectorAll('button, .card-btn, a, .back-home, .back-to-top').forEach(element => {
+                    let lastTouchTime = 0;
+                    element.addEventListener('touchend', function(e) {
+                        const currentTime = new Date().getTime();
+                        const timeDiff = currentTime - lastTouchTime;
+                        
+                        if (timeDiff < 300 && timeDiff > 0) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                        
+                        lastTouchTime = currentTime;
+                    }, { passive: false });
+                });
+                
+                document.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, { passive: false });
+                
+                document.addEventListener('gesturestart', function(e) {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                document.addEventListener('gesturechange', function(e) {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                document.addEventListener('gestureend', function(e) {
+                    e.preventDefault();
+                }, { passive: false });
+            }
+        }
+
+        // 监听URL变化，重新初始化保护
+        let lastUrl = location.href;
+        new MutationObserver(() => {
+            const url = location.href;
+            if (url !== lastUrl) {
+                lastUrl = url;
+                setTimeout(() => {
+                    if (window.imageProtection) {
+                        window.imageProtection.reinitialize();
+                    }
+                }, 300);
+            }
+        }).observe(document, { subtree: true, childList: true });
+
+        // 主要初始化函数
+        function initAll() {
+            updateDetailPage();
+            preventDoubleTapZoom();
+            initBackToTop(); // 初始化返回顶部按钮
+            initImageProtection(); // 初始化图片保护系统
+            
+            // 页面加载后测试按钮
+            setTimeout(() => {
+                console.log('页面初始化完成，测试返回顶部按钮...');
+                
+                // 如果当前不在顶部，模拟滚动以测试按钮
+                if ((window.scrollY || document.documentElement.scrollTop) < 300) {
+                    setTimeout(() => {
+                        window.scrollTo(0, 400);
+                        console.log('模拟滚动到400px位置测试按钮');
+                    }, 2000);
+                }
+            }, 1000);
+            
+            window.addEventListener('popstate', function() {
+                updateDetailPage();
+            });
+            
+            window.addEventListener('resize', function() {
+                setTimeout(() => {
+                    ensureFirstThumbnailVisible();
+                    initMobileCenterZoom();
+                    initTouchSwipe();
+                    // 重新初始化返回顶部按钮
+                    initBackToTop();
+                }, 100);
+            });
+            
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    setTimeout(() => {
+                        ensureFirstThumbnailVisible();
+                        initMobileCenterZoom();
+                        initTouchSwipe();
+                        // 重新初始化返回顶部按钮
+                        initBackToTop();
+                    }, 100);
+                }
+            });
+        }
+
+        // DOM加载完成后初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAll);
+        } else {
+            initAll();
+        }
+
+        // 页面完全加载后再次检查
+        window.addEventListener('load', function() {
+            console.log('页面完全加载，检查返回顶部按钮...');
+            
+            // 检查图片加载错误
+            document.querySelectorAll('img').forEach(img => {
+                img.addEventListener('error', function() {
+                    if (!this.hasAttribute('data-error-handled')) {
+                        this.setAttribute('data-error-handled', 'true');
+                        this.style.backgroundColor = '#eee';
+                        this.style.minHeight = this.tagName === 'IMG' ? '150px' : '100px';
+                        console.log('图片加载失败:', this.src);
+                    }
+                });
+            });
+            
+            // 确保返回顶部按钮在页面加载后初始化
+            setTimeout(() => {
+                initBackToTop();
+                
+                // 检查当前滚动位置，如果超过阈值则显示按钮
+                const currentScroll = window.scrollY || document.documentElement.scrollTop;
+                if (currentScroll > 300) {
+                    const backToTop = document.getElementById('backToTop');
+                    if (backToTop) {
+                        backToTop.classList.add('show');
+                        console.log('页面加载后自动显示返回顶部按钮，滚动位置:', currentScroll);
+                    }
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
